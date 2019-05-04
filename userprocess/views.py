@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from userprocess import faceswap
-from watten.settings import MEDIA_ROOT
+from watten.settings import MEDIA_ROOT, MEDIA_URL
 import pybase64
 
 def home(request):
@@ -20,6 +20,7 @@ def randomString(stringLength=10):
 def process_image(request):
     if 'imgdata' in request.POST:
         imgdata = request.POST['imgdata']
+        print(type(imgdata))
         header, encoded = imgdata.split(",", 1)
         imgdata_stripped = pybase64.b64decode(encoded)
         userdirectory = randomString()
@@ -28,5 +29,7 @@ def process_image(request):
         with open(os.path.join(userpath, 'image.jpg'), "wb") as f:
             f.write(imgdata_stripped)
         faceswap.main(userdirectory)
-        return render(request, 'home.html', {'userpath': userpath})
+        user_url = MEDIA_URL + userdirectory + '/' + 'output.jpg'
+        return HttpResponse(user_url)
+        #return render(request, 'home.html', {'userpath': userpath})
         #return HttpResponse("$('#convertedimage').prop('src', 'media/' + userdirectory + '/output.jpg?' + new Date().valueOf())", content_type="application/x-javascript")
