@@ -82,7 +82,7 @@ COLOUR_CORRECT_BLUR_FRAC = 0.6
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor(PREDICTOR_PATH)
 
-def main(userdirectory):
+def main(userdirectory, imgnmb, card):
 
     class TooManyFaces(Exception):
         pass
@@ -116,7 +116,7 @@ def main(userdirectory):
         cv2.fillConvexPoly(im, points, color=color)
 
     def get_face_mask(im, landmarks):
-        im = numpy.zeros(im.shape[:2], dtype=numpy.float64)
+        im = numpy.zeros(im.shape[:2], dtype=numpy.float32)
 
         for group in OVERLAY_POINTS:
             draw_convex_hull(im,
@@ -144,8 +144,8 @@ def main(userdirectory):
         # the following for more details:
         #   https://en.wikipedia.org/wiki/Orthogonal_Procrustes_problem
 
-        points1 = points1.astype(numpy.float64)
-        points2 = points2.astype(numpy.float64)
+        points1 = points1.astype(numpy.float32)
+        points2 = points2.astype(numpy.float32)
 
         c1 = numpy.mean(points1, axis=0)
         c2 = numpy.mean(points2, axis=0)
@@ -200,14 +200,14 @@ def main(userdirectory):
         # Avoid divide-by-zero errors.
         im2_blur += (128 * (im2_blur <= 1.0)).astype(im2_blur.dtype)
 
-        return (im2.astype(numpy.float64) * im1_blur.astype(numpy.float64) /
-                                                    im2_blur.astype(numpy.float64))
+        return (im2.astype(numpy.float32) * im1_blur.astype(numpy.float32) /
+                                                    im2_blur.astype(numpy.float32))
 
-    im1 = cv2.imread('hermann.jpg', cv2.IMREAD_COLOR)
+    im1 = cv2.imread(card + '.jpg', cv2.IMREAD_COLOR)
     im1 = cv2.resize(im1, (im1.shape[1] * SCALE_FACTOR,
                          im1.shape[0] * SCALE_FACTOR))
 
-    xmlfile = ET.parse('hermann.xml')
+    xmlfile = ET.parse(card + '.xml')
 
     dataset = xmlfile.getroot()
     parts = dataset.findall('.//part')
@@ -215,7 +215,7 @@ def main(userdirectory):
 
     landmarks1 = numpy.matrix(parts)
 
-    im2, landmarks2 = read_im_and_landmarks(os.path.join(MEDIA_ROOT, userdirectory, 'image.jpg'))
+    im2, landmarks2 = read_im_and_landmarks(os.path.join(MEDIA_ROOT, userdirectory, 'userimage' + imgnmb + '.jpg'))
 
     M = transformation_from_points(landmarks1[ALIGN_POINTS],
                                    landmarks2[ALIGN_POINTS])
@@ -230,7 +230,7 @@ def main(userdirectory):
 
     output_im = im1 * (1.0 - combined_mask) + warped_corrected_im2 * combined_mask
 
-    cv2.imwrite(os.path.join(MEDIA_ROOT, userdirectory, 'output.jpg'), output_im)
+    cv2.imwrite(os.path.join(MEDIA_ROOT, userdirectory, imgnmb + '.jpg'), output_im)
 
 if __name__ == "__main__":
-    main(userdirectory)
+    main(userdirectory, imgnmb, card)

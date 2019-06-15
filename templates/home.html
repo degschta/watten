@@ -9,16 +9,19 @@
 		h2, h3 { margin-top:0; }
 		form { margin-top: 15px; }
 		form > input { margin-right: 15px; }
-		#results { float:right; margin:20px; padding:20px; border:1px solid; background:#ccc; position: relative; }
-    #overlay { width: 320px; height: 240px; position: absolute; top: 0; left: 0; background-image: url("{% static 'img/hermann.png' %}"); background-position: left top;}
+		#results { float:right; margin:20px; padding:20px; border:1px solid; background:#ccc; position: relative; visibility: hidden;}
+    #overlay { width: 320px; height: 240px; position: absolute; top: 0; left: 0; background-image: url("{% static 'img/overlay0.png' %}"); background-position: left top;}
 		#converted { visibility: hidden; }
+		#decisiondiv { visibility: hidden; }
 	</style>
 	<script>
 		var URL = "{% url 'process_image' %}"
 	</script>
 </head>
 <body>
-	<div id="results">Your captured image will appear here...</div>
+	<div id="results">
+		<h2>Here is your image:</h2>
+		<div id="imgbox" style="width: 320px; height: 240px; position: relative;"><div id="overlay2"></div></div>';</div>
 	<div id="converted"><img id="convertedimage"></div>
 	<h1>WebcamJS Test Page</h1>
 	<h3>Demonstrates simple 320x240 capture &amp; display</h3>
@@ -29,44 +32,21 @@
 	<script type="text/javascript" src="{% static 'js/webcam.js' %}"></script>
 
 	<!-- Configure a few settings and attach camera -->
-	<script language="JavaScript">
-
-		Webcam.set({
-			width: 320,
-			height: 240,
-			image_format: 'jpeg',
-			jpeg_quality: 90
-		});
-		Webcam.attach( '#my_camera' );
-    webcamdiv = document.getElementById('my_camera')
-    overlay = document.createElement('div');
-    overlay.setAttribute('id', 'overlay');
-    webcamdiv.appendChild(overlay);
-	</script>
+	<script type = "text/javascript" src="{% static 'js/webcamsnap.js' %}"></script>
 	<!-- A button for taking snaps -->
 	<form method="post">
 		<input type=button value="Take Snapshot" onClick="take_snapshot()">
 	</form>
 
+	<div id="decisiondiv">
+	<p>Zufrieden?</p>
+	<form method="post">
+		<input type=button value="Ja" onClick="load_next_card()">
+		<input type=button value="Nein" onClick="delete_and_try_again()">
+	</form>
+	</div>
+
 	<!-- Code to handle taking the snapshot and displaying it locally -->
-	<script language="JavaScript">
-		function take_snapshot() {
-			// take snapshot and get image data
-			Webcam.snap( function(data_uri) {
-				// display results in page
-				document.getElementById('results').innerHTML =
-					'<h2>Here is your image:</h2>' +
-					'<div style="width: 320px; height: 240px; position: relative;"><img src="'+data_uri+'"/><div id="overlay"></div></div>';
-					var data = {'imgdata': data_uri}
-					$.post(URL, data, function(response){
-                        let userUrl = response;
-                        $('#convertedimage').prop('src', userUrl);
-    			    });
-			});
-			converted = document.getElementById('converted');
-			converted.style.visibility = 'visible';
-		}
-	</script>
 <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
 </body>
 </html>
